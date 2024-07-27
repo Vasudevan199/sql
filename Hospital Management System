@@ -1,0 +1,103 @@
+\\ Creating database for HOSPITAL MANAGEMENT
+CREATE DATABASE IF NOT EXISTS HospitalDB;
+
+
+USE HospitalDB;
+
+
+DROP TABLE IF EXISTS Medications;
+DROP TABLE IF EXISTS Appointments;
+DROP TABLE IF EXISTS Patients;
+DROP TABLE IF EXISTS Doctors;
+DROP TABLE IF EXISTS Departments;
+DROP TABLE IF EXISTS Staff;
+
+CREATE TABLE Departments (
+    DepartmentID INT PRIMARY KEY AUTO_INCREMENT,
+    DepartmentName VARCHAR(100) NOT NULL
+);
+
+
+CREATE TABLE Staff (
+    StaffID INT PRIMARY KEY AUTO_INCREMENT,
+    FirstName VARCHAR(100) NOT NULL,
+    LastName VARCHAR(100) NOT NULL,
+    DepartmentID INT,
+    Position VARCHAR(100),
+    ContactNumber VARCHAR(15),
+    Email VARCHAR(100),
+    FOREIGN KEY (DepartmentID) REFERENCES Departments(DepartmentID)
+);
+
+
+CREATE TABLE Doctors (
+    DoctorID INT PRIMARY KEY AUTO_INCREMENT,
+    FirstName VARCHAR(100) NOT NULL,
+    LastName VARCHAR(100) NOT NULL,
+    Specialization VARCHAR(100),
+    DepartmentID INT,
+    ContactNumber VARCHAR(15),
+    Email VARCHAR(100),
+    FOREIGN KEY (DepartmentID) REFERENCES Departments(DepartmentID)
+);
+
+CREATE TABLE Patients (
+    PatientID INT PRIMARY KEY AUTO_INCREMENT,
+    FirstName VARCHAR(100) NOT NULL,
+    LastName VARCHAR(100) NOT NULL,
+);
+
+
+\\Inserting values
+
+USE HospitalDB;
+
+INSERT INTO Departments (DepartmentName) VALUES 
+('Cardiology'),
+('Neurology'),
+('Oncology'),
+('Pediatrics'),
+('Radiology');
+
+
+INSERT INTO Staff (FirstName, LastName, DepartmentID, Position, ContactNumber, Email) VALUES
+('John', 'Doe', 1, 'Nurse', '123-456-7890', 'john.doe@hospital.com'),
+('Jane', 'Smith', 2, 'Technician', '234-567-8901', 'jane.smith@hospital.com'),
+('Emily', 'Jones', 3, 'Administrator', '345-678-9012', 'emily.jones@hospital.com');
+
+
+INSERT INTO Doctors (FirstName, LastName, Specialization, DepartmentID, ContactNumber, Email) VALUES
+('Alice', 'Brown', 'Cardiologist', 1, '456-789-0123', 'alice.brown@hospital.com'),
+('David', 'Wilson', 'Neurologist', 2, '567-890-1234', 'david.wilson@hospital.com'),
+('Michael', 'Taylor', 'Oncologist', 3, '678-901-2345', 'michael.taylor@hospital.com');
+
+
+INSERT INTO Patients (FirstName, LastName, DateOfBirth, Gender, ContactNumber, Address, City, State, ZipCode) VALUES
+('Sarah', 'Connor', '1985-05-12', 'F', '789-012-3456', '123 Main St', 'Springfield', 'IL', '62701'),
+('James', 'Bond', '1970-07-07', 'M', '890-123-4567', '456 Elm St', 'Metropolis', 'NY', '10001'),
+('Lisa', 'Simpson', '2010-03-15', 'F', '901-234-5678', '789 Oak St', 'Shelbyville', 'TN', '38101');
+
+
+-- Create a view to get detailed appointment information
+CREATE VIEW AppointmentDetails AS
+SELECT a.AppointmentID, p.FirstName AS PatientFirstName, p.LastName AS PatientLastName, d.FirstName AS DoctorFirstName, d.LastName AS DoctorLastName, a.AppointmentDate, a.Status
+FROM Appointments a
+JOIN Patients p ON a.PatientID = p.PatientID
+JOIN Doctors d ON a.DoctorID = d.DoctorID;
+
+
+DELIMITER //
+CREATE PROCEDURE AddNewPatient(IN firstName VARCHAR(100), IN lastName VARCHAR(100), IN dob DATE, IN gender CHAR(1), IN contact VARCHAR(15), IN address VARCHAR(255), IN city VARCHAR(50), IN state VARCHAR(50), IN zip VARCHAR(10))
+BEGIN
+    INSERT INTO Patients (FirstName, LastName, DateOfBirth, Gender, ContactNumber, Address, City, State, ZipCode) VALUES (firstName, lastName, dob, gender, contact, address, city, state, zip);
+END //
+DELIMITER ;
+
+
+SELECT * FROM Appointments WHERE PatientID NOT IN (SELECT PatientID FROM Patients);
+SELECT * FROM Appointments WHERE DoctorID NOT IN (SELECT DoctorID FROM Doctors);
+
+
+SELECT * FROM Patients WHERE DateOfBirth > DATE_SUB(CURDATE(), INTERVAL 18 YEAR);
+
+
